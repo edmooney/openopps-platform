@@ -22,12 +22,21 @@ usa_gov_api_wrapper: function (){
 	*/
 
 	//calls the api
-	var response_object = request("https://www.usa.gov/api/USAGovAPI/contacts.json/contacts",
-		function(error, response, body){
-			return response;
-		});
+	var response_promise = new Promise(function (resolve, reject) {
+		request({
+			url: "https://www.usa.gov/api/USAGovAPI/contacts.json/contacts",
+			headers: {
+				'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36',
+			}
+		},
+			function(error, response, body){
+				if (error) { reject(error); }
+				
+				resolve(response, JSON.parse(response.body));
+			});
+	});
 
-	json_obj = JSON.parse(response_object.responseContent.body);
+
 
 	//Here we write 'callbacks' for the keys within the contact object we care about
 	//If the key exists, property returns true, else returns false.
@@ -36,30 +45,40 @@ usa_gov_api_wrapper: function (){
 	var getDescription = _.property('Description');
 	var getEmailContact = _.property('Email');
 
-	//here we run through the contacts object - which contains all the agencies represented in the API
-	//We then parse out the information we care about.
-	var contacts = _.chain( json_obj.Contacts )
-		.filter( function ( contact ) {
-			var allKeysExist; //allKeysExist is expected to be a boolean
-			allKeysExist = _.isNumber(getId(contact));
-			allKeysExist = _.isString(getName(contact));
-			allKeysExist = _.isString(getDescription(contact));
-			allKeyExist = _.isString(getEmailContact(contact));
-			allKeyExist = getName(contact).includes("(") && getName(contact).includes(")");
-			return allKeysExist;
-		} )
-		.map( function ( contact ) {
-			return { //returns an object of data we care about.
-				//immutable fields
-				id: contact.Id, // get from the API
-				name: contact.Name,
-				slug: contact.Name.slice(contact.Name.indexOf("("),contact.Name.indexOf(")")), // something
-				description: contact.Description,
-				//mutable fields	
-				email_contact: contact.Email, // something
-				allows_restricted: true, //checkbox
-			};
-		});
-	}
+	response_promise.then(function (res, json) {
+			//here we run through the contacts object - which contains all the agencies represented in the API
+			//We then parse out the information we care about.
+			var contacts = _.chain( json )
+				.filter( function ( contact ) {
+					var allKeysExist; //allKeysExist is expected to be a boolean
+					allKeysExist = _.isNumber(getId(contact));
+					allKeysExist = _.isString(getName(contact));
+					allKeysExist = _.isString(getDescription(contact));
+					allKeyExist = _.isString(getEmailContact(contact));
+					allKeyExist = getName(contact).includes("(") && getName(contact).includes(")");
+					return allKeysExist;
+				} )
+				.map( function ( contact ) {
+					return { //returns an object of data we care about.
+						//immutable fields
+						id: contact.Id, // get from the API
+						name: contact.Name,
+						slug: contact.Name.slice(contact.Name.indexOf("("),contact.Name.indexOf(")")), // something
+						description: contact.Description,
+						//mutable fields	
+						email_contact: contact.Email, // something
+						allows_restricted: true, //checkbox
+					};
+				}).value();
 
+			return contacts;
+		})
+		.then(function (contacts) {
+			console.log('these are the contacts you seek', contacts);
+		})
+		.catch(function (error) {
+			console.error(error);
+		});
+		
+	}
 }
