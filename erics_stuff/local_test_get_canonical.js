@@ -4,4 +4,4 @@ var url = "https://www.usa.gov/api/USAGovAPI/contacts.json/contacts";
 
 
 var result = getter();
-console.log(result);
+// console.log(result);
