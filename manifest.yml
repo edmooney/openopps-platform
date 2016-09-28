@@ -1,0 +1,6 @@
+---
+applications:
+- name: openopps-splash-page
+buildpack: https://github.com/cloudfoundry/staticfile-buildpack.git
+domain: 18f.gov
+path: public
