@@ -69,7 +69,7 @@
     "passport-local": "^1.0.0",
     "passport-myusa": "^1.0.0",
     "pg": "^6.x.x",
-    "pg-promise": "^5.x.x",
+    "pg-promise": "^11.5.5",
     "rc": "^1.x.x",
     "request": "^2.69.0",
     "sails": "^0.12.3",
